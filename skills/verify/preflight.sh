@@ -9,7 +9,11 @@
 #   B. Contradictory conclusions  (asserts both "no changes" and "changes required")
 #   C. Unresolvable file:line citations (file missing, or line beyond EOF)
 #   D. Quoted code token not found near its citation        (WARN — advisory)
-#   E. Behavioral/security claim with no adjacent evidence  (FAIL)
+#   E. Behavioral/security/external-authority claim with no adjacent evidence (FAIL)
+#      Includes "Google requires X" / "schema.org mandates Y" without an adjacent URL.
+#   F. Backtick API tokens not found in any cited file      (WARN — advisory)
+#      Catches invented or wrong function names; advisory because proposed new code
+#      legitimately introduces tokens that do not yet exist.
 #
 # Run this on the ARTIFACT UNDER REVIEW (the spec/plan), not on a verification
 # report — a report legitimately quotes banned words in its calibration section.
@@ -191,14 +195,16 @@ done < "$artifact"
 [ "$d_warn" -eq 0 ] && echo "  ok: quoted tokens resolve near their citations"
 echo
 
-# ---- E. Strong behavioral claims must carry adjacent evidence (FAIL) --------
+# ---- E. Strong behavioral/external-authority claims must carry adjacent evidence (FAIL) ----
 # The failure mode no model caught: a confident behavioral/security assertion
 # ("X can access Y", "breaks server-to-server", "privilege escalation") with no
-# grep/caller/file:line evidence beside it. Require evidence on the claim line or
-# within +/-3 lines; otherwise it's unsubstantiated. Code fences are skipped.
-echo "-- E. Behavioral/security claims carry adjacent evidence --"
-claim_re='can access|cannot access|grants? (unrestricted )?access|access (all|any)|would break|breaks? (the )?server|server-to-server|cross-service|privilege escalation|scope bypass|replay attack|\bCSRF\b|must not require|required for (the )?architecture|can.?t happen|cannot happen|\bbypass(es|ed)?\b'
-ev_re='[A-Za-z0-9_./-]+\.(php|js|ts|sql|json|sh|py|java):[0-9]|grep |grep"|`grep|rg |->request\(|str_starts_with|str_ends_with'
+# grep/caller/file:line evidence beside it. Also catches external-authority claims
+# ("Google requires X", "the spec mandates Y") without an adjacent URL or citation.
+# Require evidence on the claim line or within +/-3 lines; otherwise it's
+# unsubstantiated. Code fences are skipped.
+echo "-- E. Behavioral/security/external-authority claims carry adjacent evidence --"
+claim_re='can access|cannot access|grants? (unrestricted )?access|access (all|any)|would break|breaks? (the )?server|server-to-server|cross-service|privilege escalation|scope bypass|replay attack|\bCSRF\b|must not require|required for (the )?architecture|can.?t happen|cannot happen|\bbypass(es|ed)?\b|\b(Google|schema\.org|W3C|RFC)\b.{0,100}\b(requires?|requirement|mandates?|must|needs?)\b'
+ev_re='[A-Za-z0-9_./-]+\.(php|js|ts|sql|json|sh|py|java):[0-9]|grep |grep"|`grep|rg |->request\(|str_starts_with|str_ends_with|https?://'
 e_fail=0; infence=0; lineno=0
 while IFS= read -r line; do
   lineno=$((lineno+1))
@@ -220,9 +226,52 @@ else
 fi
 echo
 
+# ---- F. Backtick API tokens appear in at least one cited file (advisory) ----
+# Collects all PHP/JS files cited anywhere in the spec, builds a text corpus,
+# then checks every backtick API token (contains -> :: or ends with ()) against
+# that corpus. A token absent from all cited files is likely a wrong or invented
+# function name. Advisory only: proposed new code legitimately introduces tokens
+# that do not yet exist in the cited files.
+echo "-- F. Backtick API tokens appear in cited-file corpus (advisory) --"
+cited_files_spec="$(grep -oE '[A-Za-z0-9_./-]+\.(php|js|ts)\b' "$artifact" | sort -u || true)"
+f_corpus=""; f_file_list=""
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
+  esc="$(printf '%s' "$f" | sed 's/[.[\*^$/]/\\&/g')"
+  hit="$(printf '%s\n' "$INDEX" | grep -E "(^|/)$esc$" | head -1 || true)"
+  [ -z "$hit" ] && continue
+  f_corpus+="$(cat "$hit" 2>/dev/null)"$'\n'
+  f_file_list+="$f "
+done <<< "$cited_files_spec"
+f_warn=0
+if [ -z "$f_corpus" ]; then
+  echo "  (no cited PHP/JS files resolved — skipping)"
+else
+  infence_f=0; seen_f=""
+  while IFS= read -r mdline; do
+    case "$mdline" in '```'*) infence_f=$((1-infence_f)); continue ;; esac
+    [ "$infence_f" -eq 1 ] && continue
+    toks="$(printf '%s' "$mdline" \
+      | grep -oE '`[^`]+`' | tr -d '`' \
+      | grep -E '\(\)|->|::' \
+      | grep -oE '[a-z_][a-zA-Z0-9_]+' \
+      | awk 'length($0)>=6' | sort -u || true)"
+    while IFS= read -r tok; do
+      [ -z "$tok" ] && continue
+      case " $seen_f " in *" $tok "*) continue ;; esac
+      seen_f+=" $tok"
+      printf '%s' "$f_corpus" | grep -qF "$tok" && continue
+      echo "  WARN (F): \`$tok\` not found in any cited file (${f_file_list:-none})"
+      f_warn=1
+    done <<< "$toks"
+  done < "$artifact"
+  [ "$f_warn" -eq 0 ] && echo "  ok: backtick API tokens found in cited-file corpus"
+fi
+echo
+
 # ---- Verdict ---------------------------------------------------------------
 if [ "$fail" -eq 0 ]; then
-  echo "PRE-FLIGHT: PASS (mechanical checks clean${d_warn:+; see D warnings})"
+  echo "PRE-FLIGHT: PASS (mechanical checks clean${d_warn:+; see D warnings}${f_warn:+; see F warnings})"
   exit 0
 fi
 echo "PRE-FLIGHT: FAIL (fix the items above; verdict cannot be PASS)"
