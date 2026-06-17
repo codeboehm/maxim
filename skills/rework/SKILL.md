@@ -56,7 +56,10 @@ given or its type is unclear, **ask** — don't guess which artifact is meant.
   request is vague, the prompt step must pin it down before you act.
 - **Re-verify against current code.** Artifacts drift from the code after they're
   written; re-check every fact the revision depends on (`path:line`), and use the
-  `analyze` skill's live access where the project offers it.
+  `analyze` skill's live access where the project offers it. Read
+  `.agents/project.md` for the operational ground truth (stack, commands,
+  invariants); if it looks stale against the current repo, flag it or refresh it
+  via `orient` before relying on it.
 - **Apply the delegated skill's full bar** — verification, threat-model
   calibration, project invariants, precise non-destructive edits, testable
   acceptance criteria. Rework is not a shortcut around quality.

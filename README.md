@@ -15,6 +15,7 @@ Six skills that hand off to each other, each stopping for review and never auto-
 
 | Skill | Does | Hands off to |
 |-------|------|--------------|
+| `orient` | Discovers the project's operational profile — stack, build/generators, commands, deploy, live access, conventions, landmines — to `.agents/project.md`. | `prompt` / `specify` (auto-run if missing) |
 | `prompt` | Turns a rough request into a structured task spec; persists it; stops. | `specify` |
 | `specify` | Repo-verified specification with testable acceptance criteria. | `implement` / `verify` |
 | `implement` | Spec → reviewed plan → confirmation gate → build with tests. | — |
@@ -22,7 +23,7 @@ Six skills that hand off to each other, each stopping for review and never auto-
 | `analyze` | Investigate via code + logs + (if available) live endpoints. | any of the above |
 | `verify` | Independently fact-check a spec/plan into a checkable evidence ledger. | `rework` |
 
-Artifacts live under `.agents/` in the project: `prompts/`, `specs/`, `plans/`, `verifications/`.
+Artifacts live under `.agents/` in the project: the operational profile `project.md` (from `orient`, kept current as the stack changes), plus `prompts/`, `specs/`, `plans/`, `verifications/`.
 
 ## The deterministic core (the part that actually holds)
 

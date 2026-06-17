@@ -78,6 +78,14 @@ directory if missing). Never put the plan inside a tool's own config dir.
   verification command); generated artifacts (e.g. minify/build steps); commit
   ordering. Applying these is part of "done" — **except committing, which you
   never do automatically.**
+- **Keep the operational profile current.** If the change alters the project's
+  operational surface — a new or removed dependency, a new build step or
+  generator, a new command, a new env var/secret, a new service, a
+  generated/mirrored artifact, or a deploy change — update `.agents/project.md` to
+  match (provenance-tag the new facts, or re-run `orient` to refresh). A stale
+  profile silently misleads every later `prompt`/`specify`; treat updating it as
+  part of "done," like a mirror-file sync — but, as ever, never commit it
+  automatically.
 - **Surface deviations, don't bury them.** If implementing reveals the spec or
   plan was wrong or incomplete, stop and flag it; get agreement before diverging.
   Update the plan file to match what was actually done.

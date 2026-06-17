@@ -11,7 +11,10 @@ context and hidden ambiguity visible before any code or plan exists.
 
 ## Procedure
 
-1. Read the user's request and the loaded `AGENTS.md` (global + project).
+1. Read the user's request, the loaded `AGENTS.md` (global + project), and the
+   project's operational profile `.agents/project.md` if present — it is your fast
+   path to the real stack and constraints. If the profile is **missing** and this
+   is a non-trivial task, run the `orient` skill first (say so), then continue.
 2. Pull `<context>` and `<constraints>` from the **actual repository** — real
    files, stack, schemas, and the project's hard rules. Never invent
    placeholders. If a fact is missing, do not guess it: list it under

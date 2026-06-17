@@ -20,9 +20,10 @@ A thorough-but-naive spec is a failure here: the bar is *verified facts* and
 2. **Read the persisted prompt** back from that file — the file, not your memory
    of it, is the spec's input. (Its `Open Questions for User` being `None` /
    `Proceed` is itself the signal that step 1's gate is closed — continue.)
-3. **Load context.** Read the project's `AGENTS.md` (root + any closer to the
-   area), the relevant project skills/docs, related existing specs, and the
-   actual code and its comments.
+3. **Load context.** Read the project's operational profile `.agents/project.md`
+   (if it is missing on a non-trivial task, run `orient` first, then continue),
+   the project's `AGENTS.md` (root + any closer to the area), the relevant project
+   skills/docs, related existing specs, and the actual code and its comments.
 4. **Verify every claim against the repo** (see The senior bar). Open the files.
    Where the project has live access (agent endpoints, logs, DB queries — see the
    `analyze` skill), verify against the running system, not just the code.
@@ -88,7 +89,8 @@ Check each before writing.
     is a fine outcome — but only with the *correct* rationale, and then record any
     non-obvious limitation (e.g. "scope stops being enforced once the grant is
     issued") rather than asserting the opposite.
-- **Respect project invariants.** Read them from the project's `AGENTS.md` and
+- **Respect project invariants.** Read them from `.agents/project.md` and the
+  project's `AGENTS.md`, and
   honor them in the plan — layering rules, mirrored/duplicated files that must
   stay in sync (and the verification command), commit ordering, naming
   conventions, "never auto-commit," build/minify steps. If a change touches a

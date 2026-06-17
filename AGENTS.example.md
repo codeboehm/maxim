@@ -21,11 +21,12 @@
 
 The maxim skills persist their work here. Keep these locations (or change them and say so):
 
+- **Operational profile** (`orient` skill) → `.agents/project.md` (a singleton: discovered + confirmed stack/build/deploy/access/conventions, provenance-tagged, refreshed by re-running `orient`).
 - **Structured prompts** (`prompt` skill) → `.agents/prompts/<unix-timestamp>-<kebab-slug>.md` (real `date +%s`, persisted automatically).
 - **Specifications** (`specify`) → `.agents/specs/<kebab-slug>.md` (topic-named).
 - **Implementation plans** (`implement`) → `.agents/plans/<kebab-slug>.md` (reuse the spec's slug).
 - **Verification reports** (`verify`) → `.agents/verifications/<kebab-slug>.md` (evidence ledger + PASS/FAIL/BLOCKED).
-- Producing a spec → `specify`; implementing one → `implement`; revising one → `rework`; checking one → `verify`; investigating → `analyze`.
+- Orienting on a new project → `orient`; producing a spec → `specify`; implementing one → `implement`; revising one → `rework`; checking one → `verify`; investigating → `analyze`.
 
 ## Live analysis access (optional — for the `analyze` skill)
 

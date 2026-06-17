@@ -28,8 +28,9 @@ real artifacts (code, logs, live data); never present a guess as a finding.
 ## Project-specific access
 
 The endpoint URLs, the token-generation command, the header names, and the SFTP
-variable are **project-specific**. Discover them from the project's `AGENTS.md`,
-its skills, and its deploy/secrets scripts — do not invent them. If the project
+variable are **project-specific**. Discover them from the project's operational
+profile (`.agents/project.md`, its *Live & diagnostic access* section), its
+`AGENTS.md`, its skills, and its deploy/secrets scripts — do not invent them. If the project
 has no live access, say so and fall back to code + local reproduction.
 
 If a project documents agent/diagnostic endpoints or host (SFTP) access in its

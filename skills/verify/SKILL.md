@@ -23,8 +23,9 @@ A path to the artifact to check (a spec, plan, or analysis — e.g.
 1. **Run the mechanical pre-flight (first, always).** Run
    `bash ~/.vibe/skills/verify/preflight.sh <target>` on the artifact under
    review. It deterministically checks banned calibration words, contradictory
-   conclusions, unresolvable `file:line` citations, behavioral/security claims
-   with no adjacent evidence, and quoted tokens that aren't at their cited line.
+   conclusions, unresolvable `file:line` citations, bare file-path references
+   that don't resolve (unless marked new), behavioral/security claims with no
+   adjacent evidence, and quoted tokens that aren't at their cited line.
    A non-zero exit is an
    **automatic FAIL** on the items it reports — they block PASS regardless of the
    claim ledger, and you do **not** re-judge them by hand (the script is the
@@ -69,6 +70,11 @@ A path to the artifact to check (a spec, plan, or analysis — e.g.
 - **Independence.** Re-derive from the code; never accept the document's citation
   without opening the file. Your job is to try to *break* the conclusion, not
   confirm it.
+- **The profile is context, not evidence.** Use `.agents/project.md` to know which
+  invariants and commands a spec must honor — but treat its `[repo: path:line]`
+  facts as re-checkable citations and its `[user]`/`[unknown]` facts as
+  assumptions. Behavioral claims still get re-derived from the code, never taken
+  from the profile.
 - **Shown, not described.** Paste the real `file:line` or command output for every
   row. If you didn't run it, the row is Unverified — say so.
 - **Behavior/path claims need the path.** For any "X breaks / is safe / can't
