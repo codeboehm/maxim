@@ -14,6 +14,13 @@
 #   F. Backtick API tokens not found in any cited file      (WARN — advisory)
 #      Catches invented or wrong function names; advisory because proposed new code
 #      legitimately introduces tokens that do not yet exist.
+#   G. Bare file-path reference (no :line) that does not resolve  (WARN — advisory)
+#      Check C only validates path:LINE citations; a plain path in an "Affected
+#      files" table or in prose ("edit foo/bar.css") was never checked, so a wrong
+#      directory / renamed / non-existent path slipped through. Advisory because a
+#      spec legitimately names files it will CREATE or that live outside the repo;
+#      a line that marks the path new (new/create/…) or uses a <…>/glob placeholder
+#      is exempt.
 #
 # Run this on the ARTIFACT UNDER REVIEW (the spec/plan), not on a verification
 # report — a report legitimately quotes banned words in its calibration section.
@@ -22,6 +29,13 @@
 # Exit:  0 = clean · 1 = one or more checks failed (treat as auto-FAIL) · 2 = usage
 
 set -uo pipefail
+
+# Determinism guard: some shells (Claude Code / agent harnesses, user rc files) export
+# wrapper *functions* over core tools — e.g. a `grep` that references $ZSH_VERSION. Under
+# `set -u` such a wrapper aborts mid-pipe with 127, silently turning a real match into a
+# "not found" and corrupting checks C–G. Drop any inherited function shadows so every tool
+# below is the real binary, in every environment.
+unset -f grep sed awk find cat printf wc basename dirname sort head 2>/dev/null || true
 
 artifact="${1:-}"
 if [ -z "$artifact" ] || [ ! -f "$artifact" ]; then
@@ -41,6 +55,12 @@ if [ "${#roots[@]}" -eq 0 ]; then
 fi
 
 fail=0
+
+# True when a line opens/closes a code fence, allowing leading indentation — markdown fences
+# nested in list items (e.g. an implementation plan's numbered steps) are indented, and a
+# column-0-only match would treat their contents as prose (false token/path/claim warnings).
+is_fence() { local t="${1#"${1%%[![:space:]]*}"}"; [ "${t:0:3}" = '```' ]; }
+
 echo "== Pre-flight: $artifact =="
 echo
 
@@ -182,7 +202,7 @@ while IFS= read -r mdline; do
       [ -z "$ct" ] && continue
       base="${ct%%(*}"; base="${base%%::*}"; base="${base%%->*}"; base="${base%/*}"
       [ -z "$base" ] && continue
-      printf '%s' "$window" | grep -qF "$base" && { matched=1; break; }
+      grep -qF "$base" <<< "$window" && { matched=1; break; }
     done <<< "$ctoks"
     [ "$matched" -eq 1 ] && break
   done <<< "$cites"
@@ -208,13 +228,13 @@ ev_re='[A-Za-z0-9_./-]+\.(php|js|ts|sql|json|sh|py|java):[0-9]|grep |grep"|`grep
 e_fail=0; infence=0; lineno=0
 while IFS= read -r line; do
   lineno=$((lineno+1))
-  case "$line" in '```'*) infence=$((1-infence)); continue ;; esac
+  if is_fence "$line"; then infence=$((1-infence)); continue; fi
   [ "$infence" -eq 1 ] && continue
   case "$line" in '#'*|'##'*|'###'*|'####'*|'#####'*) continue ;; esac  # skip headings
-  printf '%s' "$line" | grep -qiE "$claim_re" || continue
-  printf '%s' "$line" | grep -qiE "$ev_re" && continue
+  grep -qiE "$claim_re" <<< "$line" || continue
+  grep -qiE "$ev_re" <<< "$line" && continue
   ctx="$(sed -n "$(( lineno>3 ? lineno-3 : 1 )),$(( lineno+3 ))p" "$artifact")"
-  printf '%s' "$ctx" | grep -qiE "$ev_re" && continue
+  grep -qiE "$ev_re" <<< "$ctx" && continue
   echo "  UNSUBSTANTIATED (L$lineno): $(printf '%s' "$line" | sed 's/^[[:space:]]*//' | cut -c1-100)"
   e_fail=1
 done < "$artifact"
@@ -249,7 +269,7 @@ if [ -z "$f_corpus" ]; then
 else
   infence_f=0; seen_f=""
   while IFS= read -r mdline; do
-    case "$mdline" in '```'*) infence_f=$((1-infence_f)); continue ;; esac
+    if is_fence "$mdline"; then infence_f=$((1-infence_f)); continue; fi
     [ "$infence_f" -eq 1 ] && continue
     toks="$(printf '%s' "$mdline" \
       | grep -oE '`[^`]+`' | tr -d '`' \
@@ -260,7 +280,7 @@ else
       [ -z "$tok" ] && continue
       case " $seen_f " in *" $tok "*) continue ;; esac
       seen_f+=" $tok"
-      printf '%s' "$f_corpus" | grep -qF "$tok" && continue
+      grep -qF "$tok" <<< "$f_corpus" && continue
       echo "  WARN (F): \`$tok\` not found in any cited file (${f_file_list:-none})"
       f_warn=1
     done <<< "$toks"
@@ -269,9 +289,56 @@ else
 fi
 echo
 
+# ---- G. Bare file-path references resolve, unless flagged new (advisory) ----
+# Check C only validates path:LINE citations. A plain file path with no line
+# number — typically in an "Affected files" table or in prose ("edit foo/bar.css")
+# — was never checked, so a spec could name a path that does not exist (wrong
+# directory, renamed, never created) and still pass. This catches that. Advisory,
+# because a spec legitimately names files it will CREATE, operational files that
+# live outside the repo tree, and placeholder paths; those are exempted when the
+# line marks the path new (new/create/…) or the path carries a <…>/glob placeholder.
+echo "-- G. Bare file-path references resolve (advisory) --"
+new_re='\bnew\b|\bcreate(s|d)?\b|to be created|does ?n.?t exist|non-existent|newly (added|created)'
+g_warn=0; infence_g=0; seen_g=""
+while IFS= read -r mdline; do
+  if is_fence "$mdline"; then infence_g=$((1-infence_g)); continue; fi
+  [ "$infence_g" -eq 1 ] && continue
+  paths="$(printf '%s' "$mdline" | grep -oE '[A-Za-z0-9_./-]+\.(php|js|ts|sql|json|scss|css|html|sh|py|java)\b' | sort -u || true)"
+  [ -z "$paths" ] && continue
+  while IFS= read -r p; do
+    [ -z "$p" ] && continue
+    case " $seen_g " in *" $p "*) continue ;; esac
+    seen_g+=" $p"
+    # resolve: suffix-path match first, then bare basename (mirrors check C).
+    esc="$(printf '%s' "$p" | sed 's/[.[\*^$/]/\\&/g')"
+    hit="$(printf '%s\n' "$INDEX" | grep -E "(^|/)$esc$" | head -1 || true)"
+    if [ -z "$hit" ]; then
+      escb="$(printf '%s' "$(basename "$p")" | sed 's/[.[\*^$/]/\\&/g')"
+      hit="$(printf '%s\n' "$INDEX" | grep -E "(^|/)$escb$" | head -1 || true)"
+    fi
+    [ -n "$hit" ] && continue
+    # unresolved — exempt new-file declarations, placeholder/glob paths, and
+    # leading-dot suffix conventions (e.g. `*.down.sql` → `.down.sql`, `.rollback/`),
+    # which are naming patterns, not concrete paths. Real dot-paths (.agents/…,
+    # .github/…) resolve above and never reach here.
+    grep -qiE "$new_re" <<< "$mdline" && continue
+    case "$p" in .*|*'<'*|*'>'*|*'{'*|*'}'*|*'*'*) continue ;; esac
+    echo "  WARN (G): '$p' does not resolve under the search root(s), and the line does not mark it new."
+    echo "            (confirm the path — typo / wrong dir / renamed — or that it is intentionally new/external/generated)"
+    echo "            $(printf '%s' "$mdline" | sed 's/^[[:space:]]*//' | cut -c1-90)"
+    g_warn=1
+  done <<< "$paths"
+done < "$artifact"
+[ "$g_warn" -eq 0 ] && echo "  ok: bare file-path references resolve (or are flagged new)"
+echo
+
 # ---- Verdict ---------------------------------------------------------------
 if [ "$fail" -eq 0 ]; then
-  echo "PRE-FLIGHT: PASS (mechanical checks clean${d_warn:+; see D warnings}${f_warn:+; see F warnings})"
+  warns=""
+  [ "${d_warn:-0}" -eq 1 ] && warns+="; see D warnings"
+  [ "${f_warn:-0}" -eq 1 ] && warns+="; see F warnings"
+  [ "${g_warn:-0}" -eq 1 ] && warns+="; see G warnings"
+  echo "PRE-FLIGHT: PASS (mechanical checks clean${warns})"
   exit 0
 fi
 echo "PRE-FLIGHT: FAIL (fix the items above; verdict cannot be PASS)"
