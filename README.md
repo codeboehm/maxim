@@ -11,7 +11,7 @@ Coming from a frontier model to a smaller one feels like going from a car to a b
 
 ## The pipeline
 
-Six skills that hand off to each other, each stopping for review and never auto-committing:
+Seven skills that hand off to each other, each stopping for review and never auto-committing:
 
 | Skill | Does | Hands off to |
 |-------|------|--------------|
@@ -25,6 +25,8 @@ Six skills that hand off to each other, each stopping for review and never auto-
 
 Artifacts live under `.agents/` in the project: the operational profile `project.md` (from `orient`, kept current as the stack changes), plus `prompts/`, `specs/`, `plans/`, `verifications/`.
 
+One more skill sits **outside** the pipeline: **`voice`** — a conversational lens that gives the model's *direct replies to you* the register of a seasoned senior engineer (dry, can-do, realistic). Wording only: it never touches the artifacts above, and accuracy and calibration always outrank it.
+
 ## The deterministic core (the part that actually holds)
 
 `skills/verify/preflight.sh` is model-agnostic and runs before any LLM judgment. It deterministically **FAILs** an artifact on:
@@ -33,7 +35,12 @@ Artifacts live under `.agents/` in the project: the operational profile `project
 - **B.** Contradictory conclusions (asserts both "no changes" and "changes required").
 - **C.** Unresolvable `file:line` citations (file missing, or line past EOF).
 - **E.** Behavioral/security claims (`X can access Y`, `server-to-server`, `privilege escalation`, `would break`…) with **no adjacent evidence** (a `grep`, a caller, a `file:line`).
-- **D.** *(advisory)* A quoted code token that isn't actually near its cited line.
+
+…and **warns** (advisory — the artifact still passes, but the reviewer is flagged):
+
+- **D.** A quoted code token that isn't actually near its cited line.
+- **F.** A backtick API token not found in any cited file — catches invented or wrong names (advisory, since new code legitimately introduces tokens that don't exist yet).
+- **G.** A bare file-path with no `:line` that doesn't resolve — wrong dir, renamed, or never created — unless the line marks it new.
 
 It can't rubber-stamp and it can't over-criticize, because it isn't reasoning — it's checking. It also works on specs from *any* agent, not just Mistral.
 
