@@ -23,6 +23,17 @@ opt-in bundle (`--github-skills`) for Copilot and teammates.
 `skills/` in this repo is the single source of truth. `install.sh` copies (or symlinks)
 it into tiers 1 and 3, and merges the tier-2 block into each agent's always-on file.
 
+## Artifact formats: Markdown vs XML
+
+The stored artifacts (`.agents/prompts/`, `specs/`, `plans/`, …) are **Markdown for
+every agent** — with one exception: the structured *prompt* under **Mistral Vibe**,
+which uses an XML `<task_spec>` block. A Mistral model follows explicit XML delimiters
+more reliably; Claude, Copilot, and other agents write the same sections as readable
+Markdown. The discipline (every section filled), the file extension (`.md`), and the
+storage path are identical either way — only the serialization differs. The `prompt`
+skill carries both templates and picks by agent (Markdown is the default; XML only if
+you're Mistral), so the one symlinked source still serves all three.
+
 ## Per agent
 
 ### Mistral Vibe

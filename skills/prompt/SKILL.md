@@ -1,13 +1,13 @@
 ---
 name: prompt
-description: Turn a rough request into a structured XML task spec (role, context, constraints, instructions, acceptance criteria, open questions) and surface gaps BEFORE writing code. Use at the start of any non-trivial task, or when a request feels under-specified.
+description: Turn a rough request into a structured task spec (role, context, constraints, instructions, acceptance criteria, open questions) and surface gaps BEFORE writing code. Markdown by default; XML for Mistral Vibe. Use at the start of any non-trivial task, or when a request feels under-specified.
 ---
 
 When this skill is invoked, **do not implement and do not draft a plan.** Your
 only job is to turn the user's request into one structured task spec, **store it
 to the project's `.agents/prompts/` directory**, and stop. The value is not the
-XML syntax — it is forcing every section to be filled, which makes missing
-context and hidden ambiguity visible before any code or plan exists.
+syntax — it is forcing every section to be filled, which makes missing context
+and hidden ambiguity visible before any code or plan exists.
 
 ## Procedure
 
@@ -21,7 +21,7 @@ context and hidden ambiguity visible before any code or plan exists.
    `<open_questions>`. Where the project exposes live access (agent endpoints,
    logs, DB — see the `analyze` skill), use it to ground context and resolve
    facts rather than leaving them open.
-3. Emit exactly one `<task_spec>` block (template below).
+3. Emit exactly one task spec, in the format your agent uses (see Output format).
 4. **Always store it** to `.agents/prompts/<unix-timestamp>-<kebab-slug>.md` in
    the project (create the directory if missing). Get `<unix-timestamp>` from the
    real clock — run `date +%s` — never invent or estimate the number. This is
@@ -30,7 +30,53 @@ context and hidden ambiguity visible before any code or plan exists.
 6. **Stop.** This skill ends at the stored spec. Do not draft a plan, a logic
    blueprint, or any code — that is a separate, explicitly-invoked step.
 
-## Output template
+## Output format
+
+Same sections, two serializations — pick by your agent:
+
+- **Default → Markdown.** Write the spec as the Markdown document below, one `##`
+  section per field. It's more human-readable, so it's the default for Claude
+  Code, GitHub Copilot, and any agent that isn't Mistral.
+- **Mistral Vibe → XML.** A Mistral model in Vibe follows explicit XML delimiters
+  more reliably, so emit the `<task_spec>` block instead. Switch to XML **only**
+  if you are Mistral; when in doubt, use Markdown.
+
+The fields are identical either way — role, context, constraints, instructions,
+acceptance criteria, open questions — and every one must be filled. The stored
+file is `.md` in both cases.
+
+### Markdown (default)
+
+```markdown
+# Task spec: <short title>
+
+## Role
+The role and stance to adopt (e.g. a paranoid systems architect hunting
+structural flaws, race conditions, and data leaks).
+
+## Context
+The real tech stack, the specific files/functions in scope, relevant DB schema
+or data shapes, and the current code under change — concrete, pulled from the
+repo, not generic.
+
+## Constraints
+The hard rules that must hold (from AGENTS.md and the domain): security, legal,
+data-integrity, style, and deploy constraints.
+
+## Instructions
+1. Threat analysis first — concurrency/idempotency, failure-midway state,
+   hostile or malformed input, missing/erroring dependencies.
+2. Logic blueprint — a step-by-step summary of the approach BEFORE any code.
+3. Implementation — typed, guarded, with explicit error handling and cleanup.
+
+## Acceptance criteria
+Observable conditions that mean the task is done and correct.
+
+## Open questions
+Anything ambiguous or unverifiable. If non-empty, ask before writing code.
+```
+
+### XML (Mistral Vibe)
 
 ```xml
 <task_spec>

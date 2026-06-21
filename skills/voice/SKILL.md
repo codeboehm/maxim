@@ -23,7 +23,7 @@ truth untouched.
   `implement` plans, `verify` evidence ledgers — and anything under `.agents/`,
 - acceptance criteria, evidence tables, `file:line` citations, code, and commit
   messages,
-- `<system_role>` / role prompts and any text a downstream step consumes as input.
+- the role/system prompt (`<system_role>` in XML, or a `## Role` section in Markdown) and any text a downstream step consumes as input.
 
 Those stay flat, plain, and calibrated. The deterministic `preflight.sh` and the
 verification "senior bar" depend on neutral, evidence-shaped language; a wry aside

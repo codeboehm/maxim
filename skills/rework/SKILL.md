@@ -11,7 +11,7 @@ then hand it to the skill that owns that artifact type.
 
 A path to an existing artifact:
 
-- a **structured prompt** — `.agents/prompts/…` (contains a `<task_spec>` block)
+- a **structured prompt** — `.agents/prompts/…` (a `<task_spec>` XML block for Mistral, or the equivalent Markdown sections for other agents)
 - a **specification** — `.agents/specs/…` (a `# Spec:` document)
 - an **implementation plan** — `.agents/plans/…` (a `# Implementation Plan:` document)
 
