@@ -1,6 +1,6 @@
 # AGENTS.md — <your project>
 
-> Copy this to your repo root as `AGENTS.md`. AGENTS.md-aware agents (Mistral Vibe, newer Copilot, …) load it automatically: files closer to the task win, plus your user-global `~/.vibe/AGENTS.md`. It carries the **stack, constraints, and domain truth** — the maxim skills read it for project-specific conventions.
+> Copy this to your repo root as `AGENTS.md`. Agents that honor the AGENTS.md standard (Mistral Vibe and the GitHub Copilot CLI) load it automatically: files closer to the task win, plus your user-global instructions. It carries the **stack, constraints, and domain truth** — the maxim skills read it for project-specific conventions. (Claude Code reads `CLAUDE.md` rather than `AGENTS.md`; maxim's own always-on rules are installed as a managed block into each agent's global file by `install.sh` — see the README and [`docs/multi-agent.md`](docs/multi-agent.md).)
 
 ## The project in one sentence
 

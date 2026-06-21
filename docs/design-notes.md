@@ -69,6 +69,26 @@ conversation — is not independence of *capability*. Real verification of a
 high-stakes claim still needs either a stronger reviewer or a human who runs the
 check. `verify` narrows the gap and surfaces candidates; it does not close it.
 
+## The portability layer
+
+The same finding is why maxim is agent-portable rather than Mistral-bound. The
+skills are written in the open Agent Skills (`SKILL.md`) format, and the
+deterministic core depends on no agent at all — so the design has two parts that
+travel differently:
+
+- **The brake (`preflight.sh`) is universal.** It reasons about *text*, not about a
+  model, so it flags a confidently-wrong spec from Vibe, Claude, or Copilot
+  identically. Nothing about it is per-agent.
+- **The skills are format-portable; only their install location differs.** Vibe and
+  Claude Code both read global `SKILL.md` skills natively (`~/.vibe/skills/`,
+  `~/.claude/skills/`); Copilot has no global skills dir, so its invocable skills are
+  repo-scoped (`.github/skills/`) and its always-on discipline rides on `AGENTS.md` /
+  `COPILOT_CUSTOM_INSTRUCTIONS_DIRS`. `install.sh` maps the one source onto each.
+
+This is the same ranking applied to distribution: the part that doesn't depend on
+disposition (the brake) is also the part that doesn't depend on the agent. See
+[`multi-agent.md`](multi-agent.md) for the full mapping.
+
 ## Where to push next
 
 The highest-leverage contributions are **more deterministic `preflight.sh`

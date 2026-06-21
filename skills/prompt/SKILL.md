@@ -73,8 +73,8 @@ context and hidden ambiguity visible before any code or plan exists.
 - Keep every section tight — concrete sentences, no filler.
 - **Always persist to the project's `.agents/prompts/`** —
   `.agents/prompts/<unix-timestamp>-<kebab-slug>.md`, created if missing.
-  Storing is unconditional and automatic: do not ask, and do not write to
-  `.vibe/`, a temp dir, or anywhere else. (If the project's `AGENTS.md` names a
-  different prompts location, honor that instead.)
+  Storing is unconditional and automatic: do not ask, and do not write to a
+  temp dir, your agent's config/home directory, or anywhere else. (If the
+  project's `AGENTS.md` names a different prompts location, honor that instead.)
 - **Stop after storing.** Producing and saving the structured prompt is the whole
   job — do not continue into planning, a blueprint, or implementation.

@@ -20,9 +20,13 @@ A path to the artifact to check (a spec, plan, or analysis — e.g.
 
 ## Procedure
 
-1. **Run the mechanical pre-flight (first, always).** Run
-   `bash ~/.vibe/skills/verify/preflight.sh <target>` on the artifact under
-   review. It deterministically checks banned calibration words, contradictory
+1. **Run the mechanical pre-flight (first, always).** Run the `preflight.sh`
+   bundled **next to this skill** on the artifact under review — i.e. the
+   `preflight.sh` in this `verify` skill folder, wherever your agent loaded it
+   from (`~/.vibe/skills/verify/preflight.sh`,
+   `~/.claude/skills/verify/preflight.sh`, or `.github/skills/verify/preflight.sh`):
+   `bash <verify-skill-dir>/preflight.sh <target>`.
+   It deterministically checks banned calibration words, contradictory
    conclusions, unresolvable `file:line` citations, bare file-path references
    that don't resolve (unless marked new), behavioral/security claims with no
    adjacent evidence, and quoted tokens that aren't at their cited line.
