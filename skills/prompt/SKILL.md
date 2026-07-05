@@ -15,6 +15,8 @@ and hidden ambiguity visible before any code or plan exists.
    project's operational profile `.agents/project.md` if present — it is your fast
    path to the real stack and constraints. If the profile is **missing** and this
    is a non-trivial task, run the `orient` skill first (say so), then continue.
+   Also run `skills/index/query.sh` with the request's key terms to see prior
+   prompts/specs on related topics before re-deriving context.
 2. Pull `<context>` and `<constraints>` from the **actual repository** — real
    files, stack, schemas, and the project's hard rules. Never invent
    placeholders. If a fact is missing, do not guess it: list it under
@@ -26,6 +28,7 @@ and hidden ambiguity visible before any code or plan exists.
    the project (create the directory if missing). Get `<unix-timestamp>` from the
    real clock — run `date +%s` — never invent or estimate the number. This is
    automatic — never ask whether to save, and never use any other location.
+   Then run `skills/index/reindex.sh` so the new prompt is catalogued.
 5. If `<open_questions>` is non-empty, ask those questions and **wait**.
 6. **Stop.** This skill ends at the stored spec. Do not draft a plan, a logic
    blueprint, or any code — that is a separate, explicitly-invoked step.

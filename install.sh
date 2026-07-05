@@ -124,6 +124,12 @@ install_skills() {  # install_skills <dest> <label>
   if [ "$dry" -eq 0 ] && [ -f "$dest/verify/preflight.sh" ]; then
     chmod +x "$dest/verify/preflight.sh" 2>/dev/null || true
   fi
+  if [ "$dry" -eq 0 ] && [ -f "$dest/index/reindex.sh" ]; then
+    chmod +x "$dest/index/reindex.sh" 2>/dev/null || true
+  fi
+  if [ "$dry" -eq 0 ] && [ -f "$dest/index/query.sh" ]; then
+    chmod +x "$dest/index/query.sh" 2>/dev/null || true
+  fi
 }
 
 uninstall_skills() {  # uninstall_skills <dest> <label>

@@ -22,7 +22,9 @@ given or its type is unclear, **ask** — don't guess which artifact is meant.
 
 1. **Read the target and its lineage.** Read the artifact and identify its type
    (by location and content). Follow its links — a spec's `Source prompt`, a
-   plan's `Spec`. Understand the original intent before changing it.
+   plan's `Spec`. Understand the original intent before changing it. Run
+   `skills/index/query.sh` to get the lineage's slugs and paths without opening
+   every file in each artifact directory to find them.
 2. **Clarify the rework with `prompt` (always first).** Run it to
    capture *what* about the artifact must change, *why*, the constraints, and the
    acceptance criteria for the rework itself. Feed it the existing artifact and
@@ -44,7 +46,9 @@ given or its type is unclear, **ask** — don't guess which artifact is meant.
      further, hand off to `specify`.
 4. **Update in place.** Rework the existing artifact at its current path/slug —
    do not spawn a parallel copy (that fragments prompt ↔ spec ↔ plan). Note what
-   changed and why (in the handoff, or a short "Revised:" line at the top).
+   changed and why (in the handoff, or a short "Revised:" line at the top). Then
+   run `skills/index/reindex.sh` — the revised artifact's Status/Date may have
+   changed.
 5. **Inherit the downstream gates.** Stop where the delegated skill stops
    (`specify`: after the spec; `implement`: plan-approval, then explicit
    start-implementation). Never auto-commit.

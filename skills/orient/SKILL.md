@@ -44,7 +44,8 @@ never guess what only the developer knows.
 5. **Persist to `.agents/project.md`** (template below), every fact tagged by
    provenance: `[repo: path:line]`, `[AGENTS.md]`, `[user]`, or `[unknown]`. Stamp
    the date; create the directory if missing. (Honor any profile location the
-   project's `AGENTS.md` defines.)
+   project's `AGENTS.md` defines.) Then run `skills/index/reindex.sh` so the
+   project.md section map picks up any moved/renamed headings.
 6. **Offer to seed `AGENTS.md`.** If the project has no `AGENTS.md`, or it's thin,
    *offer* to promote the confirmed facts into it so they become curated doctrine
    — only with the user's confirmation. Never rewrite `AGENTS.md` silently.

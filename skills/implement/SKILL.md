@@ -17,7 +17,8 @@ it** — do not guess which spec is meant or invent one.
 ## Procedure
 
 1. **Read the spec** at the given path, plus its `Source prompt` and any specs it
-   references.
+   references. Use `skills/index/query.sh` to locate any specs it references by
+   keyword rather than searching directories.
 2. **Load context.** Read the project's `AGENTS.md` (root + any closer to the
    area) for invariants and conventions, the relevant project skills/docs, and
    the actual code in scope with its comments.
@@ -29,7 +30,7 @@ it** — do not guess which spec is meant or invent one.
 4. **Write the plan** to the project's plans location (see Locations), using the
    template below. The plan refines the spec's implementation section into
    ordered, independently verifiable steps grounded in the *current* code, with a
-   test strategy.
+   test strategy. Then run `skills/index/reindex.sh`.
 5. **Present the plan for review and iterate.** Summarize it, surface the risky
    decisions, and revise with the user until they approve it. Keep the stored
    plan file in sync with each accepted change.
@@ -85,7 +86,7 @@ directory if missing). Never put the plan inside a tool's own config dir.
   match (provenance-tag the new facts, or re-run `orient` to refresh). A stale
   profile silently misleads every later `prompt`/`specify`; treat updating it as
   part of "done," like a mirror-file sync — but, as ever, never commit it
-  automatically.
+  automatically, and re-run `skills/index/reindex.sh` alongside it.
 - **Surface deviations, don't bury them.** If implementing reveals the spec or
   plan was wrong or incomplete, stop and flag it; get agreement before diverging.
   Update the plan file to match what was actually done.

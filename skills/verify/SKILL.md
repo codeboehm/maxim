@@ -52,7 +52,7 @@ A path to the artifact to check (a spec, plan, or analysis — e.g.
 5. **Check calibration.** Flag every DEFINITIVE / PROVEN / GUARANTEED /
    SUPERSEDES / absolute always-never that is not backed by a Verified row.
 6. **Assign the verdict** (gate below) and **persist the report** to the
-   verifications location.
+   verifications location. Then run `skills/index/reindex.sh`.
 7. **Report** the verdict, the failed/blocked rows, and the recommended next step
    (accept, or `rework` with the specific gaps). Do not modify the target.
 

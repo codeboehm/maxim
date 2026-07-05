@@ -16,9 +16,9 @@ opt-in bundle (`--github-skills`) for Copilot and teammates.
 
 | Tier | What it is | Loads | Per agent |
 |------|------------|-------|-----------|
-| **1 · Skills** | The 8 invocable `SKILL.md` skills | On demand (progressive disclosure) | Vibe `~/.vibe/skills/` · Claude `~/.claude/skills/` · Copilot: none global |
+| **1 · Skills** | The 9 invocable `SKILL.md` skills | On demand (progressive disclosure) | Vibe `~/.vibe/skills/` · Claude `~/.claude/skills/` · Copilot: none global |
 | **2 · Always-on discipline** | The managed block (`agents/discipline-block.md`) | Every session | Vibe `~/.vibe/AGENTS.md` · Claude `~/.claude/CLAUDE.md` · Copilot `~/.copilot/AGENTS.md` |
-| **3 · Per-repo bundle** | Same 8 skills committed into a repo | Workspace / on demand | any agent — `<repo>/.github/skills/` (+ `.github/copilot-instructions.md`) |
+| **3 · Per-repo bundle** | Same 9 skills committed into a repo | Workspace / on demand | any agent — `<repo>/.github/skills/` (+ `.github/copilot-instructions.md`) |
 
 `skills/` in this repo is the single source of truth. `install.sh` copies (or symlinks)
 it into tiers 1 and 3, and merges the tier-2 block into each agent's always-on file.
@@ -66,7 +66,7 @@ you're Mistral), so the one symlinked source still serves all three.
 
 `install.sh` is built to be safe against a home directory that already has skills:
 
-- It manages **only its own 8 skills**, tracked in a `.maxim-manifest` in each skills
+- It manages **only its own 9 skills**, tracked in a `.maxim-manifest` in each skills
   dir. A skill is "maxim's" iff it's in that manifest or is a symlink resolving into this
   repo.
 - A same-named skill it didn't install is **skipped and reported**, never overwritten.

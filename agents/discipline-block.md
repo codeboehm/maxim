@@ -19,10 +19,12 @@ invoked. They are the always-loaded floor; the skills add procedure on top.
    safe / is required," show the real caller(s) (`grep`) and the gate at `file:line`,
    and confirm the branch is actually reached. Names and prose are not evidence.
 6. **Artifacts live under `.agents/`** in the project: `project.md` (profile),
-   `prompts/`, `specs/`, `plans/`, `verifications/`. Honor any locations the project's
-   `AGENTS.md` defines instead.
+   `prompts/`, `specs/`, `plans/`, `verifications/`. Plus `index.md`, the
+   deterministic catalog kept current by the `index` skill. Honor any locations
+   the project's `AGENTS.md` defines instead.
 
 **The pipeline:** `orient` → `prompt` → `specify` → `implement`; `rework` revises an
-artifact, `analyze` investigates, `verify` independently fact-checks. `voice` is a
-tone lens over direct replies only — never over artifacts. Each skill stops for
-review and hands off; none auto-commits.
+artifact, `analyze` investigates, `verify` independently fact-checks. `index`
+catalogs `.agents/` so the others can look up prior work without rereading it.
+`voice` is a tone lens over direct replies only — never over artifacts. Each
+skill stops for review and hands off; none auto-commits.

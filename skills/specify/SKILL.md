@@ -23,14 +23,24 @@ A thorough-but-naive spec is a failure here: the bar is *verified facts* and
 3. **Load context.** Read the project's operational profile `.agents/project.md`
    (if it is missing on a non-trivial task, run `orient` first, then continue),
    the project's `AGENTS.md` (root + any closer to the area), the relevant project
-   skills/docs, related existing specs, and the actual code and its comments.
+   skills/docs, then run `skills/index/query.sh` with the task's key terms to get
+   a pre-filtered candidate list of related existing specs/plans and open only
+   those files rather than reading every file under `.agents/specs/`, and the
+   actual code and its comments.
 4. **Verify every claim against the repo** (see The senior bar). Open the files.
    Where the project has live access (agent endpoints, logs, DB queries — see the
    `analyze` skill), verify against the running system, not just the code.
 5. **Write the spec** to the project's specs location, using the template below.
-6. **Stop for confirmation.** Hand back a short summary and the spec path, and
-   recommend an independent `verify` pass before the spec is acted on. Never
-   start implementing from this skill.
+   Then run `skills/index/reindex.sh`.
+6. **Stop for confirmation.** Hand back a short summary and the spec path,
+   then suggest the concrete next commands rather than a generic
+   recommendation: `/verify <spec-path>` as the immediate next step, and a
+   pre-composed `/rework <spec-path>` follow-up for if that verdict comes
+   back FAIL/BLOCKED (`rework` will ask for the specific gaps — feed it
+   `verify`'s report as the rework intent). If a `/verify` → `/rework` cycle
+   repeats more than once or twice without reaching PASS, say so as a signal
+   to reconsider the design, not a reason to keep retrying mechanically.
+   Never start implementing from this skill.
 
 ## Locations
 

@@ -76,7 +76,8 @@ A tight findings report:
 - **Unknowns / next step** — open questions and the recommended follow-up.
 
 If the project's `AGENTS.md` defines an analysis-output location, persist the
-report there; otherwise keep it in the conversation unless asked to save it.
+report there, and run `skills/index/reindex.sh`; otherwise keep it in the
+conversation unless asked to save it.
 
 ## Rules
 
