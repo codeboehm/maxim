@@ -70,7 +70,10 @@ the model resolution order, the announce line printed before every agent start,
 and the capability fallback all live in one file: `skills/maxim/roles.md`. It ships
 inside the `maxim` skill, so every install path carries it. `maxim` uses scout,
 author and verifier and leaves every gate to the user; only `/autopilot`, invoked
-explicitly, adds the `decider` at the gates.
+explicitly, adds the `decider` at the gates. `roles.md` also holds a dated
+tier → model reference table for Anthropic, OpenAI, Google, Mistral and xAI, plus
+Copilot's display names — the data a Vibe or Copilot adapter, or a project's
+"Model routing" section, picks from.
 
 | Agent | Subagents | Per-agent model | Resume | What maxim ships |
 |-------|-----------|-----------------|--------|------------------|

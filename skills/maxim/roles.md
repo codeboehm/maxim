@@ -90,6 +90,47 @@ Paths (spec, plan, verification report, results section) · what changed since t
 last gate · the specific questions · the user's grant verbatim (decider only).
 Never your verdict, your summary of correctness, or what you expect it to find.
 
+## Tier → model by provider (reference data)
+
+Checked against each vendor's own model docs on **2026-11-15**. Lineups change
+every few months — re-check the source before relying on a row, and update the
+date when you do. A model is only usable where your agent can run it (see the
+adapters below); this table is what an adapter or a **Model routing** section
+picks from.
+
+| Provider | light (`scout`) | standard (`author`, `verifier`) | deep (`decider`, escalation) | Source |
+|----------|-----------------|---------------------------------|------------------------------|--------|
+| Anthropic | `claude-haiku-5-5` | `claude-sonnet-5-5` | `claude-opus-5-5` | [models overview](https://platform.claude.com/docs/en/about-claude/models/overview) |
+| OpenAI | `gpt-6-luna` | `gpt-6.1-sol` | `gpt-6-astra` | [models](https://developers.openai.com/api/docs/models) |
+| Google | `gemini-4-hydrogen` | `gemini-4-argon` | `gemini-4-carbon` | [models](https://aistudio.google.com/docs/models) |
+| Mistral | `mistral-small-2603` (`mistral-small-latest`) | `mistral-large-4-0` | `mistral-large-4-0` (no higher tier) | [models](https://docs.mistral.ai/getting-started/models/models_overview/), [Small 4](https://docs.mistral.ai/models/mistral-small-4-0-26-03.md), [Vibe config](https://docs.mistral.ai/mistral-vibe/terminal/configuration) |
+| xAI | — | — | `grok-4.7` | [models](https://docs.x.ai/docs/models) |
+
+How the rows were chosen, and what is not settled:
+
+- **Anthropic.** Haiku 5.5: high-volume, latency-sensitive tasks. Sonnet 5.5:
+  "the best combination of speed and intelligence". Opus 5.5: the vendor's
+  recommended starting point "for most workloads". Models priced above Opus are
+  deliberately not mapped (cost); the decider runs on Opus.
+- **OpenAI.** Astra: "most capable model for the most demanding work". Sol:
+  "near-Astra performance for complex work at a lower cost". Luna: "most
+  efficient model for focused, high-volume tasks". (Terra, "fast, efficient",
+  is an alternative light model.)
+- **Google.** Carbon: strongest reasoning, complex coding. Argon: efficient
+  frontier reasoning, cheaper per turn. Hydrogen: fast, efficient, everyday
+  coding and agentic workflows. The page labels no stability for Gemini 4 and
+  does not rank Hydrogen as the fastest explicitly.
+- **Mistral.** Small 4 is GA ("hybrid … instruct, reasoning, and coding");
+  Large 4 is the current top model. Medium 3.5 (`mistral-medium-latest`, Vibe's
+  built-in) is deprecated since 2026-10-31, retiring 2027-04-30, with Large 4 as
+  the named replacement; the Devstral coding models are deprecated too.
+  Codestral is a code-completion model, not an agent model.
+- **xAI.** `grok-4.7` is "the most capable model we've built". The page names
+  no fast or mini tier, so light and standard stay empty.
+- **A missing tier** uses the next higher tier listed for that provider.
+- **Not mapped:** Microsoft (MAI-Code), Moonshot (Kimi), Z.ai (GLM), DeepSeek —
+  available through Copilot or Mistral's API, but their docs were not checked.
+
 ---
 
 ## Adapter: Claude Code (only when you are running in Claude Code)
@@ -107,7 +148,7 @@ Never your verdict, your summary of correctness, or what you expect it to find.
 - Tier → alias for overrides and escalation: light `haiku` · standard `sonnet` ·
   deep `opus`. Apply an override by passing `model` on the Agent call (it wins
   over the definition); pass nothing to use the definition's `model:` line. The
-  per-call `model` takes an alias only (`haiku`, `sonnet`, `opus`, `fable`); a full
+  per-call `model` takes an alias only (e.g. `haiku`, `sonnet`, `opus`); a full
   model ID from a routing section cannot be passed per call — map it to its alias
   or say in the announce line that it was not applied.
 - Before announcing a default, read the `model:` line of the definition Claude
@@ -126,18 +167,36 @@ Never your verdict, your summary of correctness, or what you expect it to find.
 
 Vibe supports subagents (TOML files in `~/.vibe/agents/` or `./.vibe/agents/`
 with `agent_type = "subagent"`) and a per-agent `active_model`; unset, they run on
-the session's model. maxim ships no Vibe agent files yet: use fallback step 2
-(subagent, model `inherited`) unless the user has defined subagents with an
-`active_model` and named them in a **Model routing** section. If
+the session's model. `active_model` takes an **alias** the user defines in a
+`[[models]]` block (`name` = the provider's model ID from the Mistral row above,
+`provider = "mistral"`); other providers' rows are reachable through a
+`[[providers]]` entry such as OpenRouter. maxim ships no Vibe agent files yet:
+use fallback step 2 (subagent, model `inherited`) unless the user has defined
+role subagents and named them in a **Model routing** section. If
 `enable_subagents = false`, use step 3. Resuming a subagent is not documented —
 treat it as unavailable.
 
 ## Adapter: GitHub Copilot (only when you are GitHub Copilot)
 
-Copilot custom agents (`.agent.md` profiles) take a `model` property and can
-invoke another custom agent through the `agent` tool. maxim ships no Copilot agent
-profiles yet: use fallback step 2 unless the user's routing section names custom
-agents to use. Resume is not documented — treat it as unavailable.
+Copilot custom agents (`.github/agents/<name>.agent.md`) take a `model` property
+and can invoke another custom agent through the `agent` tool. Copilot offers
+several vendors; its model **display names** for the rows above (all listed GA in
+GitHub's [supported models](https://docs.github.com/en/copilot/reference/ai-models/supported-models)
+on 2026-11-15):
+
+| Provider | light | standard | deep |
+|----------|-------|----------|------|
+| Anthropic | Claude Haiku 5.5 | Claude Sonnet 5.5 | Claude Opus 5.5 |
+| OpenAI | GPT-6 Luna | GPT-6.1 Sol | GPT-6 Astra |
+| Google | Gemini 4 Hydrogen | Gemini 4 Argon | Gemini 4 Carbon |
+| xAI | — | — | Grok 4.7 |
+
+The exact string the `model` property expects is not specified in GitHub's
+docs; community examples use the display name with a ` (copilot)` suffix in VS
+Code (e.g. `Claude Sonnet 5.5 (copilot)`) — unverified. GitHub's docs say the
+property applies in VS Code, JetBrains, Eclipse and Xcode. maxim ships no Copilot
+agent profiles yet: use fallback step 2 unless the user's routing section names
+custom agents to use. Resume is not documented — treat it as unavailable.
 
 ## Any other agent
 

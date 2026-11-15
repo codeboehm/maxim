@@ -131,7 +131,8 @@ These are honest findings, not disclaimers:
 - **High-stakes analysis needs a strong reviewer.** maxim makes output *reviewable*; it doesn't make review unnecessary.
 - **`/autopilot`'s decider is still a model.** It runs on the strongest model available and in its own context, which narrows the blind-spot problem above but doesn't remove it. Its decisions are logged so you can audit them; for high-stakes changes, keep the grant to "none" and commit yourself.
 - **The announced model is the one requested.** Environment overrides, org allowlists or a permission mode can give a subagent a different model; each subagent self-reports its model (when its environment states it), and Claude Code's `/tasks` shows the real one.
-- **Role adapters ship for Claude Code only.** Vibe and Copilot support subagents with their own model, but maxim has no adapter files for them yet — there, subagents inherit the session model (or run inline, with every gate back to you).
+- **Role adapters ship for Claude Code only.** Vibe and Copilot support subagents with their own model, but maxim has no adapter files for them yet — there, subagents inherit the session model (or run inline, with every gate back to you). `roles.md` does carry a dated tier → model table for Anthropic, OpenAI, Google, Mistral and xAI (with Copilot's display names) to pick from in a "Model routing" section.
+- **Model tables age fast.** The provider table was checked against the vendors' docs on 2026-11-15; re-check before relying on a row.
 - **Portable, not magic.** The skills run under any Agent Skills-aware tool; the deterministic core depends on none of them. Copilot is the partial exception — no global skills directory, so its *invocable* skills are repo-scoped (`.github/skills/`) while its always-on discipline rides on `AGENTS.md` / `COPILOT_CUSTOM_INSTRUCTIONS_DIRS`.
 
 ## License
