@@ -35,7 +35,7 @@ The maxim skills persist their work here. Keep these locations (or change them a
 
 ## Decider lens (optional — for `autopilot` runs)
 
-<How a decider should judge work in this project, on top of the user's own profile, e.g. "framework-first: extend the existing mechanism, remove parallel paths, no speculative abstraction". Delete if unused.>
+<How a decider should judge work in this project, on top of the user's own profile, e.g. "backwards compatibility of the public API outranks internal elegance". Delete if unused.>
 
 ## Live analysis access (optional — for the `analyze` skill)
 

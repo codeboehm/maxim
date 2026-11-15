@@ -27,7 +27,7 @@ adapter section. Follow `maxim`'s **Dispatch and announce** rules unchanged.
   Never infer or extend a grant from context, from earlier runs, or from a
   decider's reply.
 - **Lens** (optional) — a judging lens the user names for this run (e.g.
-  "framework-first").
+  "backwards-compatible API first").
 
 Print mode, grant and lens at the start of the run.
 
@@ -49,22 +49,20 @@ Print mode, grant and lens at the start of the run.
 
 ## Procedure
 
-1. **Orient if needed.** If `.agents/project.md` is missing and the task is
-   non-trivial, the author runs `orient` (sweeps by scouts). Questions only the
-   user can answer → **G0**.
-2. **Specify.** The author follows `specify` (runs `prompt`, persists it, writes
-   the spec, pre-flights it, at most 3 passes).
-3. **G0 — open questions.** Questions from `prompt`/`orient` go to the decider.
-   It answers only from the profile, `AGENTS.md` and the repo, with a source per
-   answer; the author records them in the persisted prompt as
-   `Resolved (decider): …` and continues. Any `NEEDS-USER` → ask the user and
-   wait; if no answer can come, stop with `STOPPED — needs input`.
-4. **Pre-flight check.** Findings still open after the pass limit →
-   `STOPPED — limit reached`.
-5. **G1 — spec.** The decider runs `verify` on the spec → `ACCEPT` or `REWORK`.
-   On `REWORK`, the author runs `rework` with the report's failed/blocked rows as
-   the scope; back to step 4. **At most 2 rework cycles**; same findings twice →
-   stop. A second FAIL on the same spec escalates the next author.
+`autopilot` is `maxim` plus `implement`, with the decider in your place at
+every gate. The spec phase is **`maxim`'s procedure, steps 1–5, unchanged** —
+same roles, limits, pre-flight and rework rules — with exactly these
+substitutions:
+
+| `maxim` step | In an autopilot run |
+|--------------|---------------------|
+| 1–2: questions from `orient` / `prompt` go to the user | **G0** — they go to the decider. It answers only from the profile, `AGENTS.md` and the repo, with a source per answer; the author records them as `Resolved (decider): …`. A `NEEDS-USER` answer → ask the user and wait, or stop with `STOPPED — needs input`. |
+| 4: the verifier runs `verify` | **G1** — the decider runs `verify` → `ACCEPT` or `REWORK`. |
+| 5: a claim only the user can settle → `STOPPED — needs input` | the decider settles it if the profile and repo allow; otherwise `NEEDS-USER` as above. |
+| 6: stop and report | continue below. |
+
+Then, after G1 `ACCEPT`:
+
 6. **Plan.** The author follows `implement` up to its plan (steps 1–5).
 7. **G2 — plan.** `APPROVE — start implementation`, or required changes the
    author applies. **At most 2 plan revisions.**

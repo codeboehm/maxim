@@ -41,6 +41,18 @@ The limits exist so the agent has no reason to weaken a spec until it passes: a 
 
 **Fully automatic: `/autopilot`.** A separate skill for when you want the whole way, request → implemented change, without being asked at each gate. An independent `decider` agent takes your gates — open questions, spec acceptance, plan approval, final evidence — deciding from your profile in `~/.maxim/decider-profile.md` (start from [`agents/decider-profile.example.md`](agents/decider-profile.example.md)) and logging every decision in the verification report. It commits only what your invocation grants (`/autopilot <request> — grant: commit, push`); without a grant it stops at `IMPLEMENTED — awaiting your commit`, and without subagent support every gate comes back to you. All the other skills, `maxim` included, keep you as the verifier.
 
+**`maxim` vs `autopilot`.** `autopilot` *is* `maxim` plus `implement`, with the decider in your place at the gates — its spec phase runs `maxim`'s steps unchanged, so limits, roles and rework rules live in one place.
+
+| | `/maxim` | `/autopilot` |
+|---|---|---|
+| Steps | orient → specify → pre-flight → verify → rework | the same, then plan → implement → final evidence |
+| Gates (open questions, spec, plan, final) | you | the decider agent (strongest model); you only on `NEEDS-USER` |
+| Independent check | `verifier` agent; you review its report | the decider runs `verify` itself |
+| Ends with | a verified spec — `PASS (draft)` or `STOPPED` | an implemented change — `IMPLEMENTED — awaiting your commit` / `… committed under grant`, or `STOPPED` |
+| Commit | never | only what the `grant:` in your invocation names |
+| No subagent support | runs inline, verdict labelled non-independent | every gate falls back to you |
+| Started by | you, or when you ask for the whole pipeline | only you, explicitly — no skill starts it |
+
 Artifacts live under `.agents/` in the project: the operational profile `project.md` (from `orient`, kept current as the stack changes), plus `prompts/`, `specs/`, `plans/`, `verifications/`.
 
 One more skill sits **outside** the pipeline: **`voice`** — a conversational lens that gives the model's *direct replies to you* the register of a seasoned senior engineer (dry, can-do, realistic). Wording only: it never touches the artifacts above, and accuracy and calibration always outrank it.

@@ -8,8 +8,8 @@ keep it out of every repository. The maxim `decider` reads it at each gate of a
 ## Who you stand in for
 
 <Your role, background, and what you care about when you review work — two or
-three sentences. E.g. "Product owner with an engineering background; reads code
-fluently, thinks in API contracts and incremental delivery.">
+three sentences. E.g. "Backend developer on a payments service; cares most about
+data integrity and readable tests.">
 
 ## How you decide
 
@@ -17,10 +17,10 @@ fluently, thinks in API contracts and incremental delivery.">
    command and its real output, or a live read. What cannot be verified is
    labelled unverified.
 2. **Root cause, not symptom.** <Your rule for workarounds.>
-3. **<Your design principle>** — e.g. extend the existing framework before adding
-   a parallel path; one generic mechanism beats per-case patches.
-4. **<Your size principle>** — e.g. reject speculative abstractions and config
-   knobs; over-engineering is a defect too.
+3. **<Your design principle>** — e.g. "prefer the standard library over a new
+   dependency".
+4. **<Your size principle>** — e.g. "small, reviewable changes over big-bang
+   rewrites".
 5. **<Your risk calibration>** — what you treat as high risk, what not.
 6. **<How you want deviations handled>** — e.g. fine if recorded, never silent.
 
@@ -33,8 +33,8 @@ fluently, thinks in API contracts and incremental delivery.">
 
 ## Communication
 
-<Tone and format you expect from a decision: e.g. "No flattery. Decision first,
-one-line reason, then checkable conditions.">
+<Tone and format you expect from a decision: e.g. "Decision first, one-line
+reason, then checkable conditions.">
 
 ## Decisions already made (examples of judgement)
 
