@@ -22,7 +22,9 @@ never guess what only the developer knows.
    refresh stale or missing sections rather than rebuilding from scratch; keep
    confirmed facts that still hold.
 2. **Discover from the repo (evidence first).** Walk the operational surface and
-   record each fact with its source `path:line`:
+   record each fact with its source `path:line` (the sweep may go to `scout`
+   agents, in parallel where supported — see `roles.md` in the `maxim` skill;
+   announce each):
    - manifests & lockfiles (`package.json`, `composer.json`, `go.mod`,
      `pyproject.toml`, `pom.xml`, `Cargo.toml`, …) and runtime pins (`.nvmrc`,
      `.tool-versions`, `engines`, Dockerfile base image);

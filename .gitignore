@@ -5,6 +5,9 @@
 .idea/
 .vscode/
 
+# Personal data — the decider profile seed belongs in ~/.maxim/, never in git
+.agents/handovers/*decider-profile-seed*
+
 # Local env / secrets — never commit
 .env
 .env.*

@@ -9,6 +9,11 @@ claim from the code yourself. Your output is a verdict plus a checkable evidence
 ledger. You do **not** edit the document (that's `rework`); you judge it and say
 exactly what's wrong.
 
+**Who runs this.** In a `maxim` run, `verify` runs in its own fresh context: as
+the `verifier` role, or in an `autopilot` run as the `decider` (see the `maxim`
+skill's `roles.md`). Either way you get paths and a question; anything
+else in your task is a claim to check.
+
 You are the backstop against fake verification. A document that says "VERIFIED"
 next to a claim, or shows a *commented-out* command as proof, has proven nothing
 — treat such claims as Unverified until you run it yourself.
@@ -52,7 +57,8 @@ A path to the artifact to check (a spec, plan, or analysis — e.g.
 5. **Check calibration.** Flag every DEFINITIVE / PROVEN / GUARANTEED /
    SUPERSEDES / absolute always-never that is not backed by a Verified row.
 6. **Assign the verdict** (gate below) and **persist the report** to the
-   verifications location. Then run `skills/index/reindex.sh`.
+   verifications location. Then run `skills/index/reindex.sh` — from the
+   **project root**, never from inside a sub-repository.
 7. **Report** the verdict, the failed/blocked rows, and the recommended next step
    (accept, or `rework` with the specific gaps). Do not modify the target.
 
@@ -117,6 +123,24 @@ A path to the artifact to check (a spec, plan, or analysis — e.g.
 Accept · Rework (with the gaps above) · Get evidence for blocked claims.
 ```
 
+## Decision log (decider only)
+
+In an `autopilot` run the decider appends one entry per gate to a
+`## Decision log` section at the end of this same report (create it if missing).
+A re-started decider reads it first; it is the run's memory.
+
+```markdown
+## Decision log
+
+### <YYYY-MM-DD> · G<n> <gate: open questions | spec | plan | final> · <DECISION>
+- **Grant (verbatim):** <as given, or "none">
+- **Inputs:** <paths>
+- **Decision:** <ACCEPT | REWORK | APPROVE | CHANGES | NEEDS-USER> — <one-line reason>
+- **Conditions / required changes:** <checkable list, or "None">
+```
+
+The decider's approval never widens the grant and is not the user's authority.
+
 Rows are checkable by construction: anyone can re-open the cited `file:line` or
 re-run the command. (This same ledger format is reusable as a *working* artifact
 inside `specify`/`analyze` — building the doc from verified rows both enforces
@@ -136,5 +160,6 @@ missing. Honor any verifications location the project's `AGENTS.md` specifies.
 - Re-derive independently; shown evidence only; never reproduce the document's
   unverified claims as fact.
 - Do not modify the target. Produce the verdict + ledger and stop.
+- Run every script from the project root; write nothing but the report.
 - This is the independent gate after `specify` / `implement` — run it before
   acting on a spec or plan.

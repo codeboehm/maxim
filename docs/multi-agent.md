@@ -16,9 +16,9 @@ opt-in bundle (`--github-skills`) for Copilot and teammates.
 
 | Tier | What it is | Loads | Per agent |
 |------|------------|-------|-----------|
-| **1 · Skills** | The 9 invocable `SKILL.md` skills | On demand (progressive disclosure) | Vibe `~/.vibe/skills/` · Claude `~/.claude/skills/` · Copilot: none global |
+| **1 · Skills** | The 11 invocable `SKILL.md` skills | On demand (progressive disclosure) | Vibe `~/.vibe/skills/` · Claude `~/.claude/skills/` · Copilot: none global |
 | **2 · Always-on discipline** | The managed block (`agents/discipline-block.md`) | Every session | Vibe `~/.vibe/AGENTS.md` · Claude `~/.claude/CLAUDE.md` · Copilot `~/.copilot/AGENTS.md` |
-| **3 · Per-repo bundle** | Same 9 skills committed into a repo | Workspace / on demand | any agent — `<repo>/.github/skills/` (+ `.github/copilot-instructions.md`) |
+| **3 · Per-repo bundle** | Same 11 skills committed into a repo | Workspace / on demand | any agent — `<repo>/.github/skills/` (+ `.github/copilot-instructions.md`) |
 
 `skills/` in this repo is the single source of truth. `install.sh` copies (or symlinks)
 it into tiers 1 and 3, and merges the tier-2 block into each agent's always-on file.
@@ -62,11 +62,38 @@ you're Mistral), so the one symlinked source still serves all three.
 - **Honest limitation:** Copilot's *invocable* discipline is repo-scoped, not global.
   Globally it gets the always-on rules; the step-by-step skills travel per repo.
 
+## Roles, models and adapters
+
+Skills name **roles**, never vendor models. The roles (`scout` light, `author` and
+`verifier` standard, `decider` deep, plus deterministic scripts that use no model),
+the model resolution order, the announce line printed before every agent start,
+and the capability fallback all live in one file: `skills/maxim/roles.md`. It ships
+inside the `maxim` skill, so every install path carries it. `maxim` uses scout,
+author and verifier and leaves every gate to the user; only `/autopilot`, invoked
+explicitly, adds the `decider` at the gates.
+
+| Agent | Subagents | Per-agent model | Resume | What maxim ships |
+|-------|-----------|-----------------|--------|------------------|
+| **Claude Code** | Agent tool; custom agents in `~/.claude/agents/` / `.claude/agents/` | frontmatter `model`; a per-call `model` alias overrides it | `SendMessage` | `agents/claude/maxim-{scout,author,verifier,decider}.md` → `~/.claude/agents/` (`--agent claude` only; `CLAUDE_AGENTS_DIR` overrides) |
+| **Mistral Vibe** | TOML subagents in `~/.vibe/agents/` (`agent_type = "subagent"`) | `active_model` | not documented | nothing yet — subagents inherit the session model, or name your own in a "Model routing" section |
+| **GitHub Copilot** | custom agents invoked via the `agent` tool | `model` property | not documented | nothing yet — same fallback |
+| **Other** | — | — | — | nothing; the portable text runs inline with human gates |
+
+Sources (checked 2026-11-15): [Claude sub-agents](https://code.claude.com/docs/en/sub-agents),
+[Vibe agents & skills](https://docs.mistral.ai/mistral-vibe/agents-skills),
+[Copilot custom agents](https://docs.github.com/en/copilot/reference/custom-agents-configuration).
+
+The Claude agent files follow the same ownership rules as skills (manifest in the
+agents dir, foreign same-named files skipped, `--uninstall` removes only maxim's).
+If `~/.claude/agents/` did not exist before, restart Claude Code once after the
+install. The decider's personal profile is **not** shipped: copy
+`agents/decider-profile.example.md` to `~/.maxim/decider-profile.md`.
+
 ## The non-destructive install model
 
 `install.sh` is built to be safe against a home directory that already has skills:
 
-- It manages **only its own 9 skills**, tracked in a `.maxim-manifest` in each skills
+- It manages **only its own 11 skills**, tracked in a `.maxim-manifest` in each skills
   dir. A skill is "maxim's" iff it's in that manifest or is a symlink resolving into this
   repo.
 - A same-named skill it didn't install is **skipped and reported**, never overwritten.

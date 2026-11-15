@@ -9,6 +9,10 @@ real artifacts (code, logs, live data); never present a guess as a finding.
 
 ## Sources of evidence (use what the project offers)
 
+Log, code and endpoint sweeps may go to `scout` agents if yours can start them
+(see `roles.md` in the `maxim` skill; announce each). The root-cause synthesis
+stays with you.
+
 1. **Code & history** — always available. Read the actual files, `grep` for real
    usage, check `git log`/blame. Cite `path:line`.
 2. **Logs** — retrieve them two ways, whichever the project supports:

@@ -36,6 +36,10 @@ it** — do not guess which spec is meant or invent one.
    plan file in sync with each accepted change.
 6. **Stop at the confirmation gate.** Do not write code until the user explicitly
    confirms to start implementation.
+   *Inside an `autopilot` run only:* the plan approval and the "start implementation" go
+   to the decider (gate G2), not the user; the evidence in step 8 goes to the
+   decider's final gate (G3). Without subagents, these gates fall back to the
+   user. Committing stays outside this skill (step 9).
 7. **Implement** story-by-story per the approved plan, honoring The senior bar.
 8. **Verify** against the spec's acceptance criteria — run the tests, lint, and
    build; report the real output.
@@ -91,7 +95,9 @@ directory if missing). Never put the plan inside a tool's own config dir.
   plan was wrong or incomplete, stop and flag it; get agreement before diverging.
   Update the plan file to match what was actually done.
 - **Two gates, always.** No code before the plan is approved; no commit/push ever
-  without the developer's explicit instruction.
+  without the developer's explicit instruction. Only inside an `autopilot` run
+  may the decider approve the plan and the start; a commit still needs the user's
+  recorded grant and is done by the orchestrator, never by this skill.
 
 ## Plan template
 

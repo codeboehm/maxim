@@ -8,6 +8,11 @@ specification that a senior engineer would sign off on, then stop for review.
 A thorough-but-naive spec is a failure here: the bar is *verified facts* and
 *calibrated judgment*, not volume.
 
+**Specify the clean, sustainable solution — not the quickest patch.** The spec is
+where the design is chosen; `implement` only executes it, so a shortcut picked
+here is locked in. Aim for the design the team would still be glad to own in a
+year (see The senior bar).
+
 ## Procedure
 
 1. **Structure the request.** *If a structured prompt was already produced for
@@ -30,11 +35,20 @@ A thorough-but-naive spec is a failure here: the bar is *verified facts* and
 4. **Verify every claim against the repo** (see The senior bar). Open the files.
    Where the project has live access (agent endpoints, logs, DB queries — see the
    `analyze` skill), verify against the running system, not just the code.
+   Broad sweeps (callers, line references, inventories) may go to a
+   `scout` agent if yours can start one — see `roles.md` in the `maxim` skill;
+   announce it first. The scout returns evidence; you judge it.
 5. **Write the spec** to the project's specs location, using the template below.
    Then run `skills/index/reindex.sh`.
-6. **Stop for confirmation.** Hand back a short summary and the spec path,
-   then suggest the concrete next commands rather than a generic
-   recommendation: `/verify <spec-path>` as the immediate next step, and a
+6. **Pre-flight the spec** (see Pre-flight before handing back). Run the
+   `verify` skill's `preflight.sh` on the spec and settle what it reports,
+   within the pass limit.
+7. **Stop for confirmation.** *If the `maxim` skill invoked you, return to it
+   here with the spec path and the pre-flight result instead of stopping — it
+   owns the next step.* Otherwise hand back a short summary, the spec path, and
+   the pre-flight result (clean, or the findings still open), then suggest the
+   concrete next commands rather than a generic recommendation:
+   `/verify <spec-path>` as the immediate next step, and a
    pre-composed `/rework <spec-path>` follow-up for if that verdict comes
    back FAIL/BLOCKED (`rework` will ask for the specific gaps — feed it
    `verify`'s report as the rework intent). If a `/verify` → `/rework` cycle
@@ -70,6 +84,30 @@ Check each before writing.
   `grep`) **and** the gate at `file:line`. Don't write DEFINITIVE / PROVEN /
   SUPERSEDES or absolute always/never about behavior; label what you didn't run
   as an assumption.
+- **Choose the clean, sustainable solution.** Before settling on an approach,
+  look for the design that solves the problem where it originates and that fits
+  the existing architecture — then specify that one.
+  - **Fix the cause, not the symptom.** Trace the problem to its origin (the
+    `analyze` skill's root-cause bar applies). A guard, special case, retry, or
+    flag added downstream of the real defect is a workaround; specify it only as
+    a deliberate, labelled choice.
+  - **Search for what already exists.** `grep` for the helper, pattern, or
+    extension point that already covers this before proposing a new one, and
+    cite it at `path:line`. Extend the existing mechanism rather than adding a
+    parallel one; a second way to do the same thing is debt from day one.
+  - **Weigh at least one real alternative.** For any non-trivial change, name
+    the approaches considered and why the chosen one wins on maintainability:
+    what it costs to read, test, change, and delete later — not just what it
+    costs to write now.
+  - **Clean is not bigger.** Sustainable means fewer concepts, clear ownership,
+    and no duplication — not extra abstractions, layers, or config knobs. A
+    speculative generalization is as much a defect as a hack. Prefer the
+    smallest design that leaves no known debt behind.
+  - **Name any shortcut as debt.** If the clean solution is out of reach
+    (scope, risk, a product deadline), say so plainly: specify the tactical
+    option, state what it leaves wrong, and record the clean follow-up under
+    Out of scope / follow-ups. Whether to take the shortcut is the user's
+    decision — put it in Open Questions rather than choosing it silently.
 - **Calibrate the threat model** (security-relevant changes). Name the actual
   adversary and what each artifact *actually* protects.
   - **Find the real trust root.** A value the caller chooses freely — e.g. a
@@ -126,6 +164,31 @@ Check each before writing.
   criteria; explicit assumptions and out-of-scope. State it plainly if the scope
   is larger than the request implies, or if part of the request is a bad idea.
 
+## Pre-flight before handing back
+
+The mechanical check runs before any human or `verify` sees the spec, so the
+cheap failures never reach review.
+
+- **Run it.** `bash <verify-skill-dir>/preflight.sh <spec-path>` — the
+  `preflight.sh` in the `verify` skill folder, wherever your agent loaded it
+  from. Exit 0 is clean; exit 1 lists the findings; the script is the source of
+  truth for them.
+- **Settle each finding honestly.** A flagged claim has exactly two valid
+  outcomes: add the missing evidence (the `file:line` you read, the command and
+  its actual output), or move the claim to Open Questions as unverified. A dead
+  citation is re-located in the current code, not deleted.
+- **Never write around the check.** Rewording a claim so the pattern no longer
+  matches, deleting it because it is inconvenient, or softening an acceptance
+  criterion to get a clean run is a worse result than a failing pre-flight. A
+  clean run is not the goal; a true spec is.
+- **At most 3 passes.** Fix, re-run, repeat — up to three runs in total. Stop
+  earlier if a run reports the same findings as the one before: the evidence
+  is not there, and further passes only invite rewording.
+- **Report what is left.** If findings remain when you stop, hand them back
+  verbatim with the spec. Also list every claim you removed or downgraded to
+  Open Questions during these passes. Stopping with open findings is a
+  legitimate outcome, not a failed run.
+
 ## Spec template
 
 ```markdown
@@ -146,8 +209,12 @@ is intended-by-design vs. accidental. Otherwise: the assumptions and constraints
 that must hold for this change to be correct.
 
 ## Approach
-The design and why it fits the architecture. For cross-service or schema-touching
-work, give the concept, then decompose into independently implementable stories.
+The design and why it fits the architecture. State why this is the clean,
+sustainable solution: the root cause it addresses, the existing mechanism it
+reuses or extends (`path:line`), and the alternative(s) considered with the
+reason each was rejected. If it is a deliberate shortcut, label it as one and
+name the debt it leaves. For cross-service or schema-touching work, give the
+concept, then decompose into independently implementable stories.
 
 ## Affected files
 | File | Layer | Change | Notes |
@@ -164,6 +231,7 @@ Note where each step must be verified.
 
 ## Out of scope / follow-ups
 Things deliberately not addressed here (with a one-line reason or a tracking note).
+Include the clean follow-up for any shortcut taken in Approach.
 
 ## Open questions
 Anything unverifiable or needing a product decision. Non-empty → resolve before
@@ -178,4 +246,6 @@ Skills, specs, and code comments consulted (with paths).
 - One spec per invocation. Keep every section tight — concrete sentences, no filler.
 - Prompt and spec go to the project's conventional locations, never inside a
   tool's own config directory.
+- Pre-flight the spec before handing it back; never reword or delete a claim to
+  get a clean run.
 - This skill ends at a written spec and a stop-for-review. It does not implement.

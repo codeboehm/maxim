@@ -69,6 +69,23 @@ conversation — is not independence of *capability*. Real verification of a
 high-stakes claim still needs either a stronger reviewer or a human who runs the
 check. `verify` narrows the gap and surfaces candidates; it does not close it.
 
+## Roles and models: right-size the model, keep authority with the user
+
+Not every step needs the strongest model: a grep sweep or an inventory doesn't,
+a gate decision does. So skills name **roles** (`scout`, `author`, `verifier`,
+`decider`) and one table, `skills/maxim/roles.md`, maps roles to tiers and — per
+agent, behind a capability check — to models. Deterministic scripts stay out of
+the mapping entirely: they use no model. Every agent start is announced with its
+role, purpose and model, so the routing is visible rather than assumed.
+
+The `decider` is the answer to the previous section, as far as it goes: a stronger
+model in a fresh context, used where the judgment matters — at the gates of an
+`/autopilot` run. It is still a model, so two rules bound it. Its decisions are
+persisted (a decision log in the verification report), and it can never be the
+source of authority: commit, push and promotion come only from the grant the user
+wrote in the invocation. Without subagents there is no independent decider, and the
+gates fall back to the user instead of being self-approved.
+
 ## The portability layer
 
 The same finding is why maxim is agent-portable rather than Mistral-bound. The

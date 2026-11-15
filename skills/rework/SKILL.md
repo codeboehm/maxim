@@ -51,7 +51,8 @@ given or its type is unclear, **ask** — don't guess which artifact is meant.
    changed.
 5. **Inherit the downstream gates.** Stop where the delegated skill stops
    (`specify`: after the spec; `implement`: plan-approval, then explicit
-   start-implementation). Never auto-commit.
+   start-implementation). Never auto-commit. Inside an `autopilot` run those
+   gates go to the decider; scope stays the failed rows, nothing more.
 
 ## The senior bar (non-negotiable)
 

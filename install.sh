@@ -7,19 +7,22 @@
 # Targets:
 #   Mistral Vibe   → ~/.vibe/skills/      + a managed block in ~/.vibe/AGENTS.md
 #   Claude Code    → ~/.claude/skills/    + a managed block in ~/.claude/CLAUDE.md
+#                    + the maxim role agents in ~/.claude/agents/ (agents/claude/*.md)
 #   GitHub Copilot → ~/.copilot/AGENTS.md (global custom instructions; see note)
 #   Any repo       → <repo>/.github/skills/   (--github-skills)
 #
-# It is NON-DESTRUCTIVE. It only ever manages its own skills (tracked in a
-# .maxim-manifest) and a clearly-marked managed block in your always-on files.
-# A same-named skill it did not install is reported and left untouched (use
-# --force to replace it). --uninstall removes only what maxim added.
+# It is NON-DESTRUCTIVE. It only ever manages its own skills and agent files
+# (tracked in a .maxim-manifest per directory) and a clearly-marked managed block
+# in your always-on files. A same-named skill or agent file it did not install is
+# reported and left untouched (use --force to replace it). --uninstall removes
+# only what maxim added.
 #
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
 src="$here/skills"
 block_src="$here/agents/discipline-block.md"
+claude_agents_src="$here/agents/claude"   # Claude Code adapter: role agents (maxim-*.md)
 manifest_name=".maxim-manifest"
 BEGIN_MARK="<!-- >>> maxim (managed) — do not edit between these markers >>> -->"
 END_MARK="<!-- <<< maxim (managed) <<< -->"
@@ -37,12 +40,15 @@ Usage:
   ./install.sh --skills-only        install skills; skip the always-on block
   ./install.sh --dry-run            print what would happen; write nothing
   ./install.sh --github-skills DIR  bundle skills into DIR/.github/skills/
-  ./install.sh --force              replace even a same-named FOREIGN skill
+  ./install.sh --force              replace even a same-named FOREIGN skill/agent file
   ./install.sh --uninstall          remove only what maxim installed
   ./install.sh -h | --help          this help
 
-Non-destructive: maxim never overwrites a skill it didn't install, and merges
-its always-on rules as a marked block — your other content is preserved.
+Claude Code also gets the maxim role agents (scout, author, verifier, decider)
+in ~/.claude/agents/ (override with CLAUDE_AGENTS_DIR). Other agents get none.
+
+Non-destructive: maxim never overwrites a skill or agent file it didn't install,
+and merges its always-on rules as a marked block — your other content is preserved.
 EOF
 }
 
@@ -71,14 +77,14 @@ done
 run() { if [ "$dry" -eq 1 ]; then echo "    + $*"; else eval "$*"; fi; }
 
 # ---------------------------------------------------------------- ownership
-# A target skill is maxim-owned iff it is a symlink resolving into THIS repo,
-# or it is listed in the dest's .maxim-manifest. Only owned skills are ever
-# replaced or removed without --force.
-is_owned() {  # is_owned <dest> <name>
-  local dest="$1" name="$2" target="$1/$2" rl
+# A target (skill dir or agent file) is maxim-owned iff it is a symlink resolving
+# into its source dir in THIS repo, or it is listed in the dest's .maxim-manifest.
+# Only owned targets are ever replaced or removed without --force.
+is_owned() {  # is_owned <dest> <name> [source-dir, default: skills/]
+  local dest="$1" name="$2" target="$1/$2" from="${3:-$src}" rl
   if [ -L "$target" ]; then
     rl="$(readlink -f "$target" 2>/dev/null || true)"
-    case "$rl" in "$src"/*) return 0 ;; esac
+    case "$rl" in "$from"/*) return 0 ;; esac
   fi
   [ -f "$dest/$manifest_name" ] && grep -qxF "$name" "$dest/$manifest_name"
 }
@@ -86,10 +92,10 @@ is_owned() {  # is_owned <dest> <name>
 write_manifest() {  # write_manifest <dest> <name...>
   local dest="$1"; shift
   local file="$dest/$manifest_name"
-  if [ "$dry" -eq 1 ]; then echo "    + would write manifest: $file ($# skills)"; return; fi
-  { echo "# maxim-manifest — skills maxim installed here; managed by install.sh."
+  if [ "$dry" -eq 1 ]; then echo "    + would write manifest: $file ($# entries)"; return; fi
+  { echo "# maxim-manifest — what maxim installed here; managed by install.sh."
     echo "# Safe to remove with: install.sh --uninstall"
-    echo "# generated: $(date +%F)  mode: $mode  source: $src"
+    echo "# generated: $(date +%F)  mode: $mode  source: $here"
     for n in "$@"; do [ -n "$n" ] && echo "$n"; done
   } > "$file"
 }
@@ -150,6 +156,60 @@ uninstall_skills() {  # uninstall_skills <dest> <label>
   if [ -f "$dest/$manifest_name" ]; then echo "    - removing manifest"; run "rm -f \"$dest/$manifest_name\""; fi
 }
 
+# ---------------------------------------------------------------- agent files
+# Flat *.md files (Claude Code agent definitions), same ownership rules as skills.
+install_files() {  # install_files <source-dir> <dest> <label>
+  local from="$1" dest="$2" label="$3" f name target
+  [ -d "$from" ] || return 0
+  echo "  $label agents → $dest  (mode: $mode)"
+  if [ ! -d "$dest" ]; then
+    echo "    ℹ $dest is new — restart Claude Code once so it loads these agents"
+  fi
+  run "mkdir -p \"$dest\""
+  local installed=()
+  for f in "$from"/*.md; do
+    [ -f "$f" ] || continue
+    name="$(basename "$f")"; target="$dest/$name"
+    if [ -e "$target" ] || [ -L "$target" ]; then
+      if is_owned "$dest" "$name" "$from"; then
+        echo "    ~ replacing maxim agent: $name"
+        run "rm -f \"$target\""
+      elif [ "$force" -eq 1 ]; then
+        echo "    ! --force: replacing FOREIGN agent: $name"
+        run "rm -f \"$target\""
+      else
+        echo "    ⨯ SKIP (exists, not maxim's): $name  — use --force to replace"
+        continue
+      fi
+    else
+      echo "    + installing: $name"
+    fi
+    if [ "$mode" = "link" ]; then run "ln -s \"$f\" \"$target\""
+    else run "cp \"$f\" \"$target\""; fi
+    installed+=("$name")
+  done
+  write_manifest "$dest" "${installed[@]:-}"
+}
+
+uninstall_files() {  # uninstall_files <source-dir> <dest> <label>
+  local from="$1" dest="$2" label="$3" f name target
+  [ -d "$dest" ] && [ -d "$from" ] || return 0
+  echo "  $label agents ← $dest"
+  for f in "$from"/*.md; do
+    [ -f "$f" ] || continue
+    name="$(basename "$f")"; target="$dest/$name"
+    if [ -e "$target" ] || [ -L "$target" ]; then
+      if is_owned "$dest" "$name" "$from"; then
+        echo "    - removing maxim agent: $name"
+        run "rm -f \"$target\""
+      else
+        echo "    · keeping (not maxim's): $name"
+      fi
+    fi
+  done
+  if [ -f "$dest/$manifest_name" ]; then echo "    - removing manifest"; run "rm -f \"$dest/$manifest_name\""; fi
+}
+
 # ---------------------------------------------------------------- always-on block
 write_block() {  # write_block <file>
   local file="$1" tmp
@@ -185,15 +245,18 @@ remove_block() {  # remove_block <file>
 }
 
 # ---------------------------------------------------------------- per-agent
-do_agent() {  # do_agent <label> <skills_dest|""> <always_file> <is_copilot 0|1>
+do_agent() {  # do_agent <label> <skills_dest|""> <always_file> <is_copilot 0|1> [agents_src agents_dest]
   local label="$1" skills_dest="$2" always_file="$3" is_copilot="$4"
+  local agents_from="${5:-}" agents_dest="${6:-}"
   echo "→ $label"
   if [ "$uninstall" -eq 1 ]; then
     [ -n "$skills_dest" ] && uninstall_skills "$skills_dest" "$label"
+    [ -n "$agents_dest" ] && uninstall_files "$agents_from" "$agents_dest" "$label"
     remove_block "$always_file"
     return
   fi
   [ -n "$skills_dest" ] && install_skills "$skills_dest" "$label"
+  [ -n "$agents_dest" ] && install_files "$agents_from" "$agents_dest" "$label"
   if [ "$skills_only" -eq 0 ]; then write_block "$always_file"; fi
   if [ "$is_copilot" -eq 1 ] && [ "$skills_only" -eq 0 ]; then
     echo "    ℹ Copilot reads custom instructions from the git root, the cwd, and any"
@@ -206,7 +269,8 @@ do_agent() {  # do_agent <label> <skills_dest|""> <always_file> <is_copilot 0|1>
 process_agent() {
   case "$1" in
     vibe)    do_agent "Mistral Vibe"      "${VIBE_SKILLS_DIR:-$HOME/.vibe/skills}"     "$HOME/.vibe/AGENTS.md"   0 ;;
-    claude)  do_agent "Claude Code"       "${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}" "$HOME/.claude/CLAUDE.md" 0 ;;
+    claude)  do_agent "Claude Code"       "${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}" "$HOME/.claude/CLAUDE.md" 0 \
+               "$claude_agents_src" "${CLAUDE_AGENTS_DIR:-$HOME/.claude/agents}" ;;
     copilot) do_agent "GitHub Copilot CLI" ""                                          "$HOME/.copilot/AGENTS.md" 1 ;;
     *) echo "unknown agent: $1  (use vibe|claude|copilot|all)" >&2; exit 2 ;;
   esac
@@ -248,7 +312,9 @@ if [ -n "$agents_arg" ] || [ -z "$gh_repo" ]; then
   fi
   # expand "all" or default to detected
   if [ "${#agents[@]}" -eq 0 ] || printf '%s\n' "${agents[@]}" | grep -qx all; then
-    mapfile -t agents < <(detected_agents)
+    # no mapfile: macOS ships bash 3.2, which doesn't have it
+    agents=()
+    while IFS= read -r a; do agents+=("$a"); done < <(detected_agents)
   fi
   if [ "${#agents[@]}" -eq 0 ]; then
     echo "→ No agents detected (~/.vibe, ~/.claude, copilot). Name one with --agent,"
